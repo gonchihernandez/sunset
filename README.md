@@ -24,7 +24,7 @@
 
 ## Description
 
-This is a personal project that returns AI generated images using [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Sunset is a personal project that returns AI generated images created by [stability ai](https://platform.stability.ai) based on [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Next steps
 
