@@ -6,19 +6,24 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
+  Headers,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiTags,
+  ApiUnprocessableEntityResponse,
+} from '@nestjs/swagger';
+import { Response } from 'express';
 import { ImagesService } from './images.service';
-import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 
+@ApiTags('Images')
+@Controller('images')
 @Controller('images')
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
-
-  @Post()
-  create(@Body() createImageDto: CreateImageDto) {
-    return this.imagesService.create(createImageDto);
-  }
 
   @Get()
   findAll() {
@@ -36,22 +41,38 @@ export class ImagesController {
   }
 
   @Post()
+  @ApiCreatedResponse({ description: 'Created Succesfully' })
+  @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
+  @ApiForbiddenResponse({ description: 'Unauthorized Request' })
   async uploadImage(
     @Body() formData: { name: string; email: string },
+    @Headers('Content-Type') contentType: string,
+    @Res() res: Response,
   ): Promise<any> {
     // Process the form data, save the image, and generate AI result
-    const image = await this.imagesService.processImage(
+    const { image } = await this.imagesService.processImage(
       formData.name,
       formData.email,
     );
 
-    // Send the image to the blockchain
-    const transactionId = await this.imagesService.sendToBlockchain(image);
+    // // Send the image to the blockchain
+    // const transactionId = await this.imagesService.sendToBlockchain(image);
 
-    return { transactionId };
+    // return { transactionId };
+
+    // Set the appropriate content type header
+    res.setHeader('Content-Type', 'image/png');
+
+    // Send the image in the response
+    res.send(image);
+
+    return res;
   }
 
   @Get(':id')
+  @ApiCreatedResponse({ description: 'Found Succesfully' })
+  @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
+  @ApiForbiddenResponse({ description: 'Unauthorized Request' })
   async getImage(@Param('id') id: string): Promise<any> {
     // Retrieve the image from the blockchain using the ID
     const image = await this.imagesService.getImageFromBlockchain(id);
@@ -59,6 +80,9 @@ export class ImagesController {
   }
 
   @Delete(':id')
+  @ApiCreatedResponse({ description: 'Deleted Succesfully' })
+  @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
+  @ApiForbiddenResponse({ description: 'Unauthorized Request' })
   async deleteImage(@Param('id') id: string): Promise<any> {
     // Delete the image from the blockchain using the ID
     await this.imagesService.deleteImageFromBlockchain(id);

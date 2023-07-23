@@ -1,7 +1,7 @@
 import axios from 'axios';
-import fs from 'fs';
-
+import { generateAsync } from 'stability-client';
 import { Injectable } from '@nestjs/common';
+
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 
@@ -27,16 +27,36 @@ export class ImagesService {
     return `This action removes a #${id} image`;
   }
 
-  async processImage(name: string, email: string): Promise<Buffer> {
+  async processImage(name: string, email: string): Promise<any> {
     // Use the name and email to generate the AI result and create the image
     // You can use any AI library or algorithm to generate the image
-    // Save the image to a temporary directory or buffer
-    //const imageBuffer = await generateImage(name, email);
 
-    //await fs.writeFile('path_to_temporary_directory/image.png', imageBuffer);
+    try {
+      const { res, images }: any = await generateAsync({
+        prompt: name + email + Math.random(),
+        apiKey: process.env.STABLE_DIFFUSION,
+        width: 512,
+        height: 512,
+        steps: 10,
+        engine: 'stable-diffusion-512-v2-1',
+        cfgScale: 10,
+        noStore: true,
+        samples: 1,
+        diffusion: 'ddim',
+      });
 
-    // return imageBuffer;
-    return null;
+      const responseApi = res;
+      const imageResponse = images[0];
+
+      const image = Buffer.from(imageResponse.buffer, 'base64');
+
+      const response = { responseApi, image };
+      return response;
+    } catch (error) {
+      console.log('error', error);
+    }
+
+    return ''; // Return an empty string if the image generation fails
   }
 
   async sendToBlockchain(image: Buffer): Promise<string> {
