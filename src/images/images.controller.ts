@@ -10,14 +10,18 @@ import {
   Headers,
 } from '@nestjs/common';
 import {
+  ApiBody,
+  ApiOperation,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiResponse,
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ImagesService } from './images.service';
 import { UpdateImageDto } from './dto/update-image.dto';
+import { CreateImageDto } from './dto/create-image.dto';
 
 @ApiTags('Images')
 @Controller('images')
@@ -25,28 +29,20 @@ import { UpdateImageDto } from './dto/update-image.dto';
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
-  @Get()
-  findAll() {
-    return this.imagesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.imagesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
-    return this.imagesService.update(+id, updateImageDto);
-  }
-
   @Post()
-  @ApiCreatedResponse({ description: 'Created Succesfully' })
-  @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
-  @ApiForbiddenResponse({ description: 'Unauthorized Request' })
-  async uploadImage(
-    @Body() formData: { name: string; email: string },
-    @Headers('Content-Type') contentType: string,
+  @ApiBody({ type: CreateImageDto })
+  @ApiOperation({
+    summary: 'Create a new AI image',
+    description: 'Create a new image entry and process it.',
+  })
+  @ApiResponse({ status: 201, description: 'Created Successfully' })
+  @ApiResponse({
+    status: 422,
+    description: 'Unprocessable Entity - Bad Request',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden - Unauthorized Request' })
+  async createImage(
+    @Body() formData: CreateImageDto,
     @Res() res: Response,
   ): Promise<any> {
     // Process the form data, save the image, and generate AI result
@@ -69,28 +65,43 @@ export class ImagesController {
     return res;
   }
 
-  @Get(':id')
-  @ApiCreatedResponse({ description: 'Found Succesfully' })
-  @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
-  @ApiForbiddenResponse({ description: 'Unauthorized Request' })
-  async getImage(@Param('id') id: string): Promise<any> {
-    // Retrieve the image from the blockchain using the ID
-    const image = await this.imagesService.getImageFromBlockchain(id);
-    return { image };
-  }
+  // @Get()
+  // findAll() {
+  //   return this.imagesService.findAll();
+  // }
 
-  @Delete(':id')
-  @ApiCreatedResponse({ description: 'Deleted Succesfully' })
-  @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
-  @ApiForbiddenResponse({ description: 'Unauthorized Request' })
-  async deleteImage(@Param('id') id: string): Promise<any> {
-    // Delete the image from the blockchain using the ID
-    await this.imagesService.deleteImageFromBlockchain(id);
-    return { message: 'Image deleted successfully' };
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.imagesService.findOne(+id);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.imagesService.remove(+id);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
+  //   return this.imagesService.update(+id, updateImageDto);
+  // }
+
+  // @Get(':id')
+  // @ApiCreatedResponse({ description: 'Found Succesfully' })
+  // @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
+  // @ApiForbiddenResponse({ description: 'Unauthorized Request' })
+  // async getImage(@Param('id') id: string): Promise<any> {
+  //   // Retrieve the image from the blockchain using the ID
+  //   const image = await this.imagesService.getImageFromBlockchain(id);
+  //   return { image };
+  // }
+
+  // @Delete(':id')
+  // @ApiCreatedResponse({ description: 'Deleted Succesfully' })
+  // @ApiUnprocessableEntityResponse({ description: 'Bad Request' })
+  // @ApiForbiddenResponse({ description: 'Unauthorized Request' })
+  // async deleteImage(@Param('id') id: string): Promise<any> {
+  //   // Delete the image from the blockchain using the ID
+  //   await this.imagesService.deleteImageFromBlockchain(id);
+  //   return { message: 'Image deleted successfully' };
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.imagesService.remove(+id);
+  // }
 }
